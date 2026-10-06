@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ocean Word Defender｜海洋英文單字遊戲</title>
+<style>
+:root{color-scheme:dark;--bg:#04121f;--panel:#0a2a44;--line:#1d5578;--ink:#eaf8ff;--mute:#8fb8cf;--aqua:#5ff0d0;--coral:#ff7a6b;--sun:#ffd166;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC",system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:#06192b}
+h1{margin:0;font-size:clamp(22px,4vw,32px);letter-spacing:.5px}.sub{color:var(--mute);font-size:13px}
+.stats{display:flex;gap:8px;flex-wrap:wrap}.stat{background:#0c3555;border-radius:12px;padding:7px 12px;font-weight:800}
+.hp{background:#2a0f1b;border:2px solid var(--coral);border-radius:12px;padding:5px 11px;font-size:20px}
+main{max-width:1000px;margin:auto;padding:16px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:18px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+button,select{font:inherit;border:0;border-radius:12px;padding:10px 14px;cursor:pointer}
+select{background:#0c3555;color:var(--ink)}
+.btn{background:var(--aqua);color:#032235;font-weight:800}.btn.alt{background:#12456b;color:var(--ink)}
+.btn:hover{filter:brightness(1.1)}button:focus-visible,select:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+#question{font-size:clamp(24px,4.5vw,40px);font-weight:900;text-align:center;margin:6px 0}
+#question em{font-style:normal;color:var(--sun)}
+.hint{text-align:center;color:var(--mute);font-size:14px;margin-bottom:8px}
+.progress{height:8px;background:#04182a;border-radius:8px;overflow:hidden;margin:8px 0 12px}.bar{height:100%;width:100%;background:var(--aqua)}
+#arena{position:relative;height:430px;overflow:hidden;border-radius:20px;border:2px solid #1b6a92;background:linear-gradient(180deg,#0e86b4 0%,#0a5a88 40%,#052a4d 100%)}
+#arena::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(100deg,transparent 0 60px,#ffffff10 60px 90px);pointer-events:none;animation:sway 9s ease-in-out infinite alternate}
+@keyframes sway{to{transform:translateX(40px)}}
+.sand{position:absolute;left:0;right:0;bottom:0;height:46px;background:#c9a56b;border-radius:50% 50% 0 0/24px 24px 0 0;opacity:.85}
+.weed{position:absolute;bottom:20px;font-size:34px;transform-origin:bottom;animation:wave 3s ease-in-out infinite alternate}
+@keyframes wave{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
+.fish{position:absolute;font-size:28px;left:-60px;opacity:.7;transform:scaleX(-1);animation:swim linear infinite}
+@keyframes swim{to{translate:1300px 0}}
+.bubble{position:absolute;width:clamp(92px,22vw,128px);aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;color:#06324d;font-weight:900;font-size:clamp(14px,2.4vw,19px);line-height:1.1;word-break:break-word;border:2px solid #ffffffaa;
+background:radial-gradient(circle at 30% 26%,#ffffff 0 9%,#ffffffb0 10% 20%,transparent 38%),radial-gradient(circle at 50% 55%,#c5f6ffcc 0%,#7fdcf2cc 62%,#3fb4dccc 100%);
+box-shadow:inset -8px -10px 18px #1b8fb866,inset 6px 6px 14px #ffffff88,0 10px 22px #021a3066;
+animation:wob var(--d,3s) ease-in-out var(--dl,0s) infinite alternate;transition:transform .15s}
+.bubble::after{content:"";position:absolute;right:20%;bottom:14%;width:14%;height:8%;border-radius:50%;background:#ffffffaa;transform:rotate(-30deg)}
+.bubble:hover{transform:scale(1.08)}
+@keyframes wob{from{scale:1.04 .96}to{scale:.96 1.04}}
+.bubble.bad{animation:shake .35s;background:radial-gradient(circle at 30% 26%,#fff 0 9%,transparent 36%),radial-gradient(circle,#ffc2bb,#ff7a6b);color:#4a0f0a}
+@keyframes shake{25%{translate:-10px 0}75%{translate:10px 0}}
+.dot{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;background:#ffffff55;pointer-events:none;animation:burst .6s ease-out forwards}
+@keyframes burst{to{transform:translate(var(--x),var(--y)) scale(.3);opacity:0}}
+.feedback{height:30px;text-align:center;font-weight:900;font-size:19px;margin-top:8px}
+.review{margin-top:16px}.review h2{margin:0 0 10px;font-size:20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.card{background:#0c3555;border-radius:14px;padding:12px;border:1px solid #1d5578}.card b{font-size:18px}.card span{display:block;color:var(--mute);margin-top:3px;font-size:13px}.card .zh{color:var(--aqua);font-weight:800;font-size:15px}
+.say{cursor:pointer}.say:hover,.say:focus-visible{color:var(--sun);outline:none}.card .en{color:var(--ink);opacity:.9}.card .cn{color:var(--mute);font-size:13px}
+#arena.lv-normal{background:linear-gradient(180deg,#2a8c8a 0%,#14585f 30%,#0d2f4d 65%,#0a1230 100%);border-color:#2f8a8a}
+#arena.lv-normal::before{background:repeating-linear-gradient(105deg,transparent 0 70px,#d8fff033 70px 88px,transparent 88px 160px)}
+.lv-normal .sand{background:#5e6b5a}.lv-normal .weed{filter:hue-rotate(-35deg) brightness(.65)}
+.deco{position:absolute;bottom:16px;font-size:34px;opacity:.9}
+.snow{position:absolute;top:-10px;width:4px;height:4px;border-radius:50%;background:#e8fff4aa;animation:fall linear infinite}
+@keyframes fall{to{translate:24px 470px}}
+#arena.lv-hard{background:linear-gradient(180deg,#8a2a22 0%,#5c1418 45%,#2a070c 100%);border-color:#a23a30}
+#arena.lv-hard::after{content:"";position:absolute;inset:0;background:radial-gradient(circle,transparent 40%,#ff2a1a44 100%);animation:pulse 2.5s ease-in-out infinite alternate;pointer-events:none}
+@keyframes pulse{from{opacity:.35}to{opacity:1}}
+.lv-hard .sand{background:#5b3a2a}
+.shark{position:absolute;width:150px;left:-170px;opacity:.85;transform:scaleX(-1);animation:swim linear infinite}
+.junk{position:absolute;font-size:30px;opacity:.9;animation:drift 6s ease-in-out infinite alternate}
+@keyframes drift{from{translate:0 -10px;rotate:-12deg}to{translate:14px 12px;rotate:14deg}}
+.ach.lock{filter:grayscale(1);opacity:.4}.ach b{font-size:16px}
+#toast{position:fixed;left:50%;bottom:24px;translate:-50% 20px;background:#0a2a44;border:2px solid var(--sun);border-radius:14px;padding:10px 16px;font-weight:800;opacity:0;pointer-events:none;transition:.3s;z-index:50}#toast.show{opacity:1;translate:-50% 0}
+.overlay{position:fixed;inset:0;background:#02101dd9;display:none;align-items:center;justify-content:center;padding:18px;z-index:30}
+.modal{width:min(460px,100%);background:#0a2a44;border:1px solid #2c7aa6;border-radius:24px;padding:26px;text-align:center}
+.score{font-size:56px;font-weight:900;color:var(--sun)}
+.vbox{width:min(1000px,100%);height:min(88vh,740px);background:#0a2a44;border:1px solid #2c7aa6;border-radius:24px;padding:18px;display:flex;flex-direction:column}
+.vhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.vhead h2{margin:0}
+#wordSearch{width:100%;margin:12px 0;padding:12px 14px;border-radius:12px;border:1px solid #2c6f98;background:#05182a;color:var(--ink);font-size:16px}
+#vocabGrid{overflow:auto;flex:1}
+@media(max-width:600px){main{padding:8px}.panel{padding:12px}#arena{height:420px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div><h1>🫧 Ocean Word Defender</h1><div class="sub">戳破正確的泡泡，守護海洋 · 最高分 <b id="best">0</b></div></div>
+  <div class="stats"><div class="stat">⏱ <span id="clock">2:00</span></div><div class="stat">⭐ <span id="score">0</span></div><div class="stat">🔥 <span id="combo">0</span></div><div class="hp" id="hearts">❤️❤️❤️</div></div>
+</header>
+<main>
+<div class="panel">
+  <div class="controls">
+    <select id="level" aria-label="難度"><option value="easy">簡單</option><option value="normal" selected>普通</option><option value="hard">挑戰</option></select>
+    <button class="btn" id="start">開始遊戲</button>
+    <button class="btn alt" id="speak">🔊 朗讀單字</button>
+    <button class="btn alt" id="music">🎵 音樂：開</button><button class="btn alt" id="reset">↻ 重置</button>
+    <button class="btn alt" id="vocabBtn">📖 全部單字</button>
+  </div>
+  <div id="question">按「開始遊戲」出發</div>
+  <div class="hint">點擊與中文意思相符的英文泡泡</div>
+  <div class="progress"><div id="bar" class="bar"></div></div>
+  <div id="arena"><div id="decor"></div></div>
+  <div id="feedback" class="feedback"></div>
+</div>
+<div class="panel review"><h2>📚 本局單字複習</h2><div id="review" class="grid"><span class="sub">玩完一局後，單字會出現在這裡。</span></div></div>
+<div class="panel review"><h2>🏅 成就 <span id="achCount" class="sub"></span></h2><div id="ach" class="grid"></div></div>
+</main>
+<div id="toast"></div>
+
+<div class="overlay" id="vocabPage"><div class="vbox"><div class="vhead"><div><h2>📖 全部單字</h2><div class="sub">共 <b id="totalWords"></b> 個單字</div></div><button class="btn" id="closeVocab">✕ 關閉</button></div><input id="wordSearch" placeholder="搜尋英文或中文意思"><div id="vocabGrid" class="grid"></div></div></div>
+<div class="overlay" id="overlay"><div class="modal"><div style="font-size:26px">🏆 遊戲結束</div><div class="score" id="finalScore">0</div><div id="finalText" style="margin:6px 0 16px"></div><button class="btn" id="again">再玩一次</button></div></div>
+
+<script>
+const WORDS=[
+["ocean","海洋","The ocean covers most of Earth.","海洋覆蓋了地球的大部分。"],
+["pollution","污染","Ocean pollution harms marine life.","海洋污染會傷害海洋生物。"],
+["plastic","塑膠","Plastic can stay in the ocean for a very long time.","塑膠可以在海洋中存在很長很長的時間。"],
+["recycle","回收","We should recycle bottles and cans.","我們應該回收瓶子和罐子。"],
+["protect","保護","We must protect the ocean.","我們必須保護海洋。"],
+["environment","環境","Everyone can help the environment.","每個人都能為環境盡一份力。"],
+["marine","海洋的","Marine animals need a clean home.","海洋動物需要一個乾淨的家。"],
+["waste","廢棄物","Do not throw waste into the sea.","不要把廢棄物丟進大海。"],
+["beach","海灘","We picked up trash on the beach.","我們在海灘上撿垃圾。"],
+["turtle","海龜","The turtle returned to the clean sea.","海龜回到了乾淨的海裡。"],
+["dolphin","海豚","A dolphin swam beside the boat.","一隻海豚在船旁游過。"],
+["coral","珊瑚","Warm water can damage coral.","水溫過高會損害珊瑚。"],
+["fishing","捕魚","Fishing can affect marine ecosystems.","捕魚可能會影響海洋生態系統。"],
+["net","漁網；網子","The turtle was caught in a fishing net.","那隻海龜被漁網纏住了。"],
+["clean","乾淨的；清理","Keep the beach clean.","請保持海灘乾淨。"],
+["trash","垃圾","Please put the trash in a bin.","請把垃圾丟進垃圾桶。"],
+["bottle","瓶子","Bring a reusable bottle.","請自備可重複使用的瓶子。"],
+["ecosystem","生態系統","Every animal is part of an ecosystem.","每種動物都是生態系統的一部分。"],
+["habitat","棲息地","Pollution can destroy an animal's habitat.","污染可能破壞動物的棲息地。"],
+["endangered","瀕危的","Some marine animals are endangered.","有些海洋動物正瀕臨絕種。"],
+["biodiversity","生物多樣性","Coral reefs support rich biodiversity.","珊瑚礁孕育了豐富的生物多樣性。"],
+["sustainable","永續的","Sustainable fishing keeps fish populations healthy.","永續的捕魚方式能讓魚群保持健康。"],
+["overfishing","過度捕撈","Overfishing has pushed some species toward collapse.","過度捕撈已使某些物種瀕臨崩潰。"],
+["microplastic","微塑膠","Tiny microplastics are eaten by plankton.","微小的塑膠顆粒會被浮游生物吃下。"],
+["conservation","保育","Marine conservation protects fragile habitats.","海洋保育保護脆弱的棲息地。"],
+["contaminate","污染；弄髒","Oil can contaminate the water for years.","漏油可能使海水受污染多年。"],
+["acidification","酸化","Ocean acidification weakens shells and coral.","海洋酸化會削弱貝殼和珊瑚。"],
+["bleaching","白化","Coral bleaching happens when the water gets too warm.","海水過熱時就會發生珊瑚白化。"],
+["plankton","浮游生物","Plankton is the base of the ocean food chain.","浮游生物是海洋食物鏈的基礎。"],
+["predator","掠食者","The shark is a top predator.","鯊魚是頂級掠食者。"],
+["migrate","遷徙","Whales migrate thousands of kilometers each year.","鯨魚每年遷徙數千公里。"],
+["sanctuary","保護區；庇護所","The bay became a marine sanctuary.","這個海灣成為了海洋保護區。"],
+["extinct","絕種的","Overhunting made the sea cow extinct.","過度獵捕使海牛絕種了。"],
+["runoff","地表逕流","Farm runoff carries chemicals into the sea.","農田的逕流把化學物質帶進海裡。"],
+["emission","排放","Carbon emissions are warming the oceans.","碳排放正使海洋升溫。"],
+["vulnerable","脆弱的；易受傷害的","Baby turtles are vulnerable to predators.","小海龜很容易受到掠食者攻擊。"],
+["biodegradable","可生物分解的","Biodegradable bags break down faster than plastic.","可生物分解的袋子比塑膠分解得更快。"],
+["debris","碎屑；殘骸","Floating debris can trap seabirds.","漂浮的碎屑可能困住海鳥。"],
+["toxic","有毒的","Toxic chemicals harm fish and the people who eat them.","有毒化學物質會傷害魚類和吃魚的人。"],
+["oil spill","漏油事件","An oil spill coated the beach in black sludge.","一場漏油事件讓海灘覆滿黑色油污。"],
+["current","洋流；目前的","A warm current flows along the coast.","一股暖流沿著海岸流動。"],
+["tide","潮汐","The tide washed trash onto the shore.","潮水把垃圾沖上岸。"],
+["regulation","法規；管制","New regulation limits how much waste ships can dump.","新法規限制了船隻可傾倒的廢棄物量。"]
+];
+const $=s=>document.querySelector(s);
+let score=0,combo=0,lives=3,playing=false,current=null,timer=null,used=[],best=0,actx=null;
+let gameTimer=null,endAt=0,musicOn=true,mTimer=null,step=0;
+let S={plays:0,correct:0,bestCombo:0,best:0,flawless:0,lv:{},u:[]};try{Object.assign(S,JSON.parse(localStorage.getItem("owd_s")||"{}"))}catch(e){}
+S.lv=Object.assign({easy:0,normal:0,hard:0},S.lv);
+try{best=+localStorage.getItem("owd_best")||0}catch(e){}
+const arena=$("#arena"),q=$("#question"),bar=$("#bar"),feedback=$("#feedback");
+
+function beep(f,d=.12,type="sine"){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const o=actx.createOscillator(),g=actx.createGain();o.type=type;o.frequency.value=f;g.gain.value=.08;o.connect(g);g.connect(actx.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d);o.stop(actx.currentTime+d)}catch(e){}}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function update(){$("#score").textContent=score;$("#combo").textContent=combo;$("#best").textContent=best;$("#hearts").textContent="❤️".repeat(Math.max(0,lives))+"🖤".repeat(Math.max(0,3-lives))}
+function speak(t){if("speechSynthesis"in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;speechSynthesis.speak(u)}}
+function clearBubbles(){bl=[];arena.querySelectorAll(".bubble,.dot").forEach(x=>x.remove())}
+const SLOTS=[[5,6],[37,4],[69,6],[18,44],[54,46]];
+function makeBubble(w,i){
+  const el=document.createElement("button");el.className="bubble";el.textContent=w[0];const n=w[0].length;if(n>12)el.style.fontSize="12px";else if(n>9)el.style.fontSize="14px";
+  const p=SLOTS[i%SLOTS.length];el.style.left=(p[0]+Math.random()*3)+"%";el.style.top=(p[1]+Math.random()*3)+"%";
+  el.style.setProperty("--d",(3+Math.random()*2.5).toFixed(1)+"s");el.style.setProperty("--dl",(-Math.random()*3).toFixed(1)+"s");
+  el.onclick=()=>answer(w,el);arena.appendChild(el);reg(el,p);
+}
+const still=matchMedia("(prefers-reduced-motion: reduce)").matches;let bl=[],last=0;
+function reg(el,p){const W=arena.clientWidth,H=arena.clientHeight,sp={easy:22,normal:34,hard:50}[$("#level").value],a=Math.random()*6.28;
+  const b={el,x:p[0]/100*W,y:p[1]/100*H,w:el.offsetWidth,sp,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp};el.style.left=b.x+"px";el.style.top=b.y+"px";bl.push(b)}
+function frame(t){
+  const dt=Math.min(.05,(t-last)/1000||0);last=t;
+  if(!still&&bl.length){
+    bl=bl.filter(b=>b.el.isConnected);const W=arena.clientWidth,H=arena.clientHeight-30;
+    for(const b of bl){
+      b.vx+=(Math.random()-.5)*60*dt;b.vy+=(Math.random()-.5)*60*dt;
+      const v=Math.hypot(b.vx,b.vy)||1,c=Math.min(b.sp*1.4,Math.max(b.sp*.6,v));b.vx*=c/v;b.vy*=c/v;
+      b.x+=b.vx*dt;b.y+=b.vy*dt;
+      if(b.x<0){b.x=0;b.vx=Math.abs(b.vx)}if(b.x>W-b.w){b.x=W-b.w;b.vx=-Math.abs(b.vx)}
+      if(b.y<0){b.y=0;b.vy=Math.abs(b.vy)}if(b.y>H-b.w){b.y=H-b.w;b.vy=-Math.abs(b.vy)}}
+    for(let i=0;i<bl.length;i++)for(let j=i+1;j<bl.length;j++){
+      const a=bl[i],b=bl[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1,m=(a.w+b.w)/2;
+      if(d<m){const nx=dx/d,ny=dy/d,o=(m-d)/2;a.x-=nx*o;a.y-=ny*o;b.x+=nx*o;b.y+=ny*o;
+        const rv=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rv<0){a.vx+=nx*rv;a.vy+=ny*rv;b.vx-=nx*rv;b.vy-=ny*rv}}}
+    for(const b of bl){b.el.style.left=b.x+"px";b.el.style.top=b.y+"px"}}
+  requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+function pop(el){
+  const a=arena.getBoundingClientRect(),r=el.getBoundingClientRect();
+  for(let i=0;i<10;i++){const d=document.createElement("i");d.className="dot";const ang=i/10*6.28;
+    d.style.left=(r.left-a.left+r.width/2)+"px";d.style.top=(r.top-a.top+r.height/2)+"px";
+    d.style.setProperty("--x",Math.cos(ang)*70+"px");d.style.setProperty("--y",Math.sin(ang)*70+"px");arena.appendChild(d);setTimeout(()=>d.remove(),650)}
+  el.remove();
+}
+function nextRound(){
+  if(!playing)return;
+  clearBubbles();feedback.textContent="";
+  const lv=$("#level").value,count=lv==="easy"?3:lv==="hard"?5:4;
+  let pool=shuffle(WORDS);
+  if(current&&pool[0]===current)pool.push(pool.shift());
+  current=pool[0];used.push(current);
+  q.innerHTML=`找出：<em>${current[1]}</em>`;
+  shuffle(pool.slice(0,count)).forEach((w,i)=>makeBubble(w,i));
+  const sec=lv==="easy"?9:lv==="hard"?4.2:6;
+  const t0=performance.now();clearInterval(timer);
+  timer=setInterval(()=>{const t=100-(performance.now()-t0)/(sec*10);bar.style.width=Math.max(0,t)+"%";if(t<=0){clearInterval(timer);wrong(null,true)}},50);
+}
+function answer(w,el){
+  if(!playing)return;
+  if(w===current){
+    clearInterval(timer);const gain=100+combo*25;score+=gain;combo++;S.correct++;S.bestCombo=Math.max(S.bestCombo,combo);S.best=Math.max(S.best,score);{const L=$("#level").value;S.lv[L]=Math.max(S.lv[L],score)}check();
+    feedback.textContent="✅ 答對了！+"+gain;beep(660);setTimeout(()=>beep(880),90);
+    pop(el);update();speak(w[0]);setTimeout(nextRound,700);
+  }else wrong(el,false);
+}
+function wrong(el,timeout){
+  if(!playing)return;
+  clearInterval(timer);combo=0;lives--;beep(180,.25,"sawtooth");
+  feedback.textContent=timeout?"⏰ 時間到！答案是 "+current[0]:"❌ 再想想，答案是 "+current[0];
+  if(el)el.classList.add("bad");update();
+  if(lives<=0){setTimeout(endGame,700);return}
+  setTimeout(nextRound,1100);
+}
+function startGame(){
+  $("#overlay").style.display="none";
+  score=0;combo=0;lives=3;used=[];current=null;playing=true;$("#level").disabled=true;update();startClock();startMusic();nextRound();
+}
+function endGame(timeUp){
+  if(!playing)return;playing=false;clearInterval(timer);clearInterval(gameTimer);stopMusic();clearBubbles();$("#level").disabled=false;q.textContent=timeUp===true?"⏰ 時間到！":"遊戲結束！";S.plays++;if(timeUp===true&&lives===3)S.flawless=1;check();
+  if(score>best){best=score;try{localStorage.setItem("owd_best",best)}catch(e){}}
+  $("#finalScore").textContent=score;
+  $("#finalText").textContent=(timeUp===true?"2 分鐘到了！":"生命用完了！")+` 你挑戰了 ${used.length} 題，最高分 ${best}`;
+  $("#overlay").style.display="flex";renderReview();update();
+}
+function CARD(x){return `<div class="card"><b class="say" data-t="${x[0]}" tabindex="0">🔊 ${x[0]}</b><span class="zh">${x[1]}</span><span class="say en" data-t="${x[2]}" tabindex="0">🔊 ${x[2]}</span><span class="cn">${x[3]}</span></div>`}
+document.addEventListener("click",e=>{const t=e.target.closest(".say");if(t)speak(t.dataset.t)});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"){const t=e.target.closest&&e.target.closest(".say");if(t)speak(t.dataset.t)}});
+function startClock(){clearInterval(gameTimer);endAt=performance.now()+120000;tick();gameTimer=setInterval(tick,250)}
+function tick(){const r=Math.max(0,endAt-performance.now()),c=Math.ceil(r/1000);$("#clock").textContent=Math.floor(c/60)+":"+String(c%60).padStart(2,"0");$("#clock").parentNode.style.color=c<=10?"var(--coral)":"";if(r<=0)endGame(true)}
+const SHARK='<svg class="shark" viewBox="0 0 120 50" style="top:TOP%;animation-duration:DURs"><path d="M4 28Q40 6 86 22L114 6L104 28L116 48L86 34Q40 50 4 28Z" fill="#6f8ea6"/><path d="M48 15L60 0L70 18Z" fill="#587790"/><path d="M20 33Q45 42 80 33Q45 46 20 33Z" fill="#dce9f0"/><circle cx="24" cy="26" r="2.5" fill="#0a1c2c"/></svg>';
+function setScene(){
+  const lv=$("#level").value;arena.className="lv-"+lv;let h='<div class="sand"></div>';
+  if(lv==="easy")h+='<span class="weed" style="left:6%">🌿</span><span class="weed" style="left:48%;animation-delay:-1s">🪸</span><span class="weed" style="right:7%;animation-delay:-2s">🌿</span><span class="fish" style="top:12%;animation-duration:26s">🐟</span><span class="fish" style="top:70%;animation-duration:34s;animation-delay:-12s">🐠</span>';
+  else if(lv==="normal"){h+='<span class="deco" style="left:30%">⚓</span><span class="deco" style="left:62%;font-size:42px">🪨</span><span class="weed" style="left:8%">🌿</span><span class="weed" style="right:9%;animation-delay:-1s">🌿</span>'+SHARK.replace("TOP","30").replace("DUR","22")+SHARK.replace("TOP","72").replace("DUR","31")+'<span class="fish" style="top:55%;animation-duration:15s">🐟</span>';for(let i=0;i<14;i++)h+=`<i class="snow" style="left:${Math.random()*100}%;animation-duration:${6+Math.random()*6}s;animation-delay:${-Math.random()*8}s"></i>`}
+  else h+='<span class="junk" style="left:10%;top:58%">🛢️</span><span class="junk" style="left:42%;top:22%;animation-delay:-2s">🥤</span><span class="junk" style="left:76%;top:62%;animation-delay:-3s">🛍️</span><span class="junk" style="left:62%;top:84%;animation-delay:-1s">🥫</span><span class="junk" style="left:24%;top:88%;animation-delay:-4s">☠️</span><span class="fish" style="top:40%;animation-duration:28s;filter:grayscale(1)">🐟</span>';
+  $("#decor").innerHTML=h;
+}
+const MUS={easy:{bpm:96,n:[262,330,392,523,392,330,294,392],t:"sine",v:.05,b:0},normal:{bpm:118,n:[220,262,330,262,247,294,370,294],t:"triangle",v:.05,b:4},hard:{bpm:150,n:[220,262,311,262,220,277,330,277],t:"sawtooth",v:.03,b:2}};
+function tone(f,d,t,v){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();const o=actx.createOscillator(),g=actx.createGain();o.type=t;o.frequency.value=f;g.gain.setValueAtTime(v,actx.currentTime);g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+d);o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+d)}catch(e){}}
+function startMusic(){stopMusic();if(!musicOn)return;const m=MUS[$("#level").value];step=0;mTimer=setInterval(()=>{tone(m.n[step%m.n.length],.4,m.t,m.v);if(m.b&&step%m.b===0)tone(m.n[0]/2,.5,"sine",.07);step++},30000/m.bpm)}
+function stopMusic(){clearInterval(mTimer)}
+const AC=[["first","🌊","初次下水","完成 1 局遊戲",s=>s.plays>=1],["p5","🐬","海洋常客","累計玩 5 局",s=>s.plays>=5],["p10","🐋","資深潛水員","累計玩 10 局",s=>s.plays>=10],["s1000","⭐","千分達人","單局 1000 分",s=>s.best>=1000],["s3000","🌟","海洋之星","單局 3000 分",s=>s.best>=3000],["c5","🔥","連擊新手","連續答對 5 題",s=>s.bestCombo>=5],["c10","💥","連擊大師","連續答對 10 題",s=>s.bestCombo>=10],["w50","📚","單字收藏家","累計答對 50 題",s=>s.correct>=50],["shark","🦈","鯊魚剋星","普通難度拿到 1500 分",s=>s.lv.normal>=1500],["red","🛢️","紅海倖存者","挑戰難度拿到 1000 分",s=>s.lv.hard>=1000],["flaw","🛡️","完美守護","撐滿 2 分鐘且不失誤",s=>s.flawless]];
+function save(){try{localStorage.setItem("owd_s",JSON.stringify(S))}catch(e){}}
+function check(){const nw=[];AC.forEach(a=>{if(!S.u.includes(a[0])&&a[4](S)){S.u.push(a[0]);nw.push(a[1]+" "+a[2])}});save();if(nw.length){renderAch();const t=$("#toast");t.textContent="解鎖成就：" + nw.join("、");t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3200)}}
+function renderAch(){$("#achCount").textContent=`已解鎖 ${S.u.length}/${AC.length}`;$("#ach").innerHTML=AC.map(a=>`<div class="card ach ${S.u.includes(a[0])?"":"lock"}"><b>${a[1]} ${a[2]}</b><span>${a[3]}</span></div>`).join("")}
+function renderReview(){
+  const u=[...new Map(used.map(x=>[x[0],x])).values()];
+  $("#review").innerHTML=u.length?u.map(x=>CARD(x)).join(""):'<span class="sub">玩完一局後，單字會出現在這裡。</span>';
+}
+function renderVocab(f=""){
+  const k=f.trim().toLowerCase();
+  const list=WORDS.filter(w=>w[0].includes(k)||w[1].includes(f.trim()));
+  $("#totalWords").textContent=WORDS.length;
+  $("#vocabGrid").innerHTML=list.map(w=>CARD(w)).join("")||'<div class="sub">找不到符合的單字。</div>';
+}
+$("#start").onclick=startGame;
+$("#again").onclick=startGame;
+$("#reset").onclick=()=>{playing=false;clearInterval(timer);clearInterval(gameTimer);stopMusic();$("#clock").textContent="2:00";$("#level").disabled=false;clearBubbles();score=0;combo=0;lives=3;current=null;update();q.textContent="按「開始遊戲」出發";feedback.textContent="";bar.style.width="100%"};
+$("#speak").onclick=()=>current&&speak(current[0]);
+$("#vocabBtn").onclick=()=>{renderVocab();$("#vocabPage").style.display="flex"};
+$("#closeVocab").onclick=()=>$("#vocabPage").style.display="none";
+$("#wordSearch").oninput=e=>renderVocab(e.target.value);
+$("#music").onclick=()=>{musicOn=!musicOn;$("#music").textContent="🎵 音樂："+(musicOn?"開":"關");if(playing)musicOn?startMusic():stopMusic()};
+$("#level").onchange=setScene;setScene();renderAch();update();
+</script>
+</body>
+</html>
